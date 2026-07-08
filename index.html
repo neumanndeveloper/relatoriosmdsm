@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Relatório de Atendimento de Ocorrência</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon2-192.png">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    :root {
+      --bg-primary: #0f172a;
+      --bg-surface: #1e293b;
+      --bg-card: #ffffff;
+      --bg-input: #f8fafc;
+      --bg-section-team: #f0fdf4;
+      --bg-section-team-label: #16a34a;
+      --text-primary: #0f172a;
+      --text-secondary: #43546d;
+      --text-heading: #1e3a5f;
+      --accent-blue: #2563eb;
+      --accent-green: #16a34a;
+      --accent-green-light: #bbf7d0;
+      --accent-red: #dc2626;
+      --accent-amber: #f59e0b;
+      --border-color: #e2e8f0;
+      --border-focus: #3b82f6;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+      --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 0;
+      font-size: 15px;
+      font-weight: 400;
+      max-width: 860px;
+      margin: 0 auto;
+      color: var(--text-primary);
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      background-attachment: fixed;
+      min-height: 100vh;
+    }
+
+    body > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ===== COPYRIGHT BAR ===== */
+    .copyright-bar {
+      text-align: center;
+      padding: 6px 12px;
+      font-size: 10px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== PDF CONTENT (white card) ===== */
+    #pdf-content {
+      background-color: var(--bg-card);
+      padding: 20px 15px;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      box-shadow: var(--shadow-xl);
+    }
+
+    /* ===== HEADER / LOGOS ===== */
+    .logo-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-color);
+    }
+    .logo { width: 110px; max-width: 28%; height: auto; }
+    .logo-center {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--accent-blue);
+      letter-spacing: 3px;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.08);
+    }
+
+    /* ===== TITLE ===== */
+    h1 {
+      text-align: center;
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-heading);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 10px 16px;
+      margin-bottom: 16px;
+      background: linear-gradient(90deg, var(--accent-blue), #1e40af);
+      color: #fff;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* ===== FORM ROWS ===== */
+    .form-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 0;
+    }
+    .form-row > label {
+      flex: 1;
+      min-width: 170px;
+    }
+
+    /* ===== LABELS ===== */
+    label {
+      display: block;
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    /* ===== INPUTS ===== */
+    input[type="text"],
+    input[type="date"],
+    input[type="time"],
+    textarea {
+      width: 100%;
+      padding: 5px;
+      font-weight: 500;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      border: 1.5px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      background: var(--bg-input);
+      transition: var(--transition);
+      outline: none;
+      color: darkblue;
+    }
+    input[type="text"]:focus,
+    input[type="date"]:focus,
+    input[type="time"]:focus,
+    textarea:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+      background: #fff;
+    }
+    input[type="text"]::placeholder {
+      color: #94a3b8;
+      font-weight: 400;
+      font-style: italic;
+    }
+    textarea {
+      min-height: 220px;
+      resize: vertical;
+      line-height: 1.1;
+    }
+    textarea.mini { min-height: 45px; }
+
+    /* ===== NUMBER/ANO INLINE ===== */
+    .numero-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+    .numero-row span {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .numero-row input[type="text"] {
+      width: 80px;
+      flex-shrink: 0;
+    }
+    .numero-row input[type="text"].ano-input {
+      width: 70px;
+    }
+
+    /* ===== EQUIPE SECTION ===== */
+    .equipe {
+      margin-top: 8px;
+      background: var(--bg-section-team);
+      padding: 8px;
+      border-radius: var(--radius-lg);
+      border: 1.5px solid #bbf7d0;
+    }
+    .equipe-label {
+      display: inline-block;
+      background: var(--bg-section-team-label);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 5px 16px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== ASSINATURA ===== */
+    .assinatura {
+      margin-top: 8px;
+    }
+    canvas#assinatura {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-sm);
+      width: 100%;
+      height: 170px;
+      cursor: crosshair;
+      background: #fefefe;
+      touch-action: none;
+    }
+
+    /* ===== OBS ===== */
+    .obs-box {
+      color: var(--accent-red);
+      font-size: 11px;
+      font-weight: 500;
+      text-align: center;
+      padding: 5px;
+      margin-top: 5px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-sm);
+      line-height: 1.5;
+    }
+
+    /* ===== NEUMANN FOOTER ===== */
+    .neumann {
+      font-size: 9px;
+      color: #0e0e7d;
+      text-align: right;
+      margin-top: 2px;
+      margin-bottom: 12px;
+    }
+
+    /* ===== FOTOS (inside PDF) ===== */
+    #fotos-container {
+      margin-top: 5px;
+    }
+    .foto-box {
+      margin-bottom: 5px;
+      page-break-inside: avoid;
+      break-inside: avoid;
+      text-align: center;
+    }
+    .foto-box p {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      margin: 0 0 4px 0;
+      background: none;
+      padding: 0;
+    }
+    .foto-box img {
+      max-width: 100%;
+      max-height: 200px;
+      object-fit: contain;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ===== ACTION PANEL (below PDF content) ===== */
+    .action-panel {
+      background: var(--bg-surface);
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+      box-shadow: var(--shadow-xl);
+    }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      border: none;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      width: 100%;
+      transition: var(--transition);
+      text-decoration: none;
+      letter-spacing: 0.3px;
+    }
+    .btn:active { transform: scale(0.98); }
+
+    .btn-outline {
+      background: rgba(255,255,255,0.08);
+      color: #e2e8f0;
+      border: 1.5px solid rgba(255,255,255,0.15);
+    }
+    .btn-outline:hover {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-green), #15803d);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.35);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(22, 163, 74, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-blue {
+      background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
+    }
+    .btn-blue:hover {
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-finalizar {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.35);
+      font-size: 15px;
+      padding: 14px 16px;
+      border: 2px solid rgba(255,255,255,0.2);
+    }
+    .btn-finalizar:hover {
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-cta {
+      background: linear-gradient(135deg, var(--accent-green), #059669);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+      font-size: 15px;
+      padding: 14px 16px;
+    }
+    .btn-cta:hover {
+      box-shadow: 0 6px 20px rgba(22, 163, 74, 0.5);
+      transform: translateY(-1px);
+    }
+
+    /* ===== PHOTOS SECTION (outside PDF) ===== */
+    .photos-section {
+      background: var(--bg-surface);
+      margin-top: 12px;
+      padding: 16px 20px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+    .photos-section label {
+      color: #e2e8f0;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    .photos-section input[type="file"] {
+      width: 100%;
+      font-size: 13px;
+      color: #cbd5e1;
+      margin-bottom: 10px;
+      padding: 8px;
+      border: 1.5px dashed rgba(255,255,255,0.2);
+      border-radius: var(--radius-sm);
+      background: rgba(255,255,255,0.05);
+      cursor: pointer;
+    }
+    .photos-section input[type="file"]::-webkit-file-upload-button {
+      background: var(--accent-green);
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 12px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    /* ===== LINK BUTTONS ===== */
+    .botao {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: #fff;
+      padding: 14px 16px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      border-radius: var(--radius-md);
+      width: 100%;
+      text-decoration: none;
+      transition: var(--transition);
+      letter-spacing: 0.3px;
+    }
+    .botao-ctb {
+      background: linear-gradient(135deg, #7c3aed, #5b21b6);
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+      margin-top: 12px;
+    }
+    .botao-ctb:hover {
+      box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .botao-digital {
+      margin-top: 12px;
+      padding: 0;
+      background: none;
+      box-shadow: none;
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+    .botao-digital img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ===== TERMS LINK ===== */
+    .terms-bar {
+      text-align: center;
+      margin: 12px 0 20px 0;
+      padding: 10px 16px;
+      background: rgba(245, 158, 11, 0.1);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: var(--radius-md);
+    }
+    .terms-bar a {
+      color: var(--accent-amber);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 13px;
+      transition: var(--transition);
+    }
+    .terms-bar a:hover { color: #fbbf24; text-decoration: underline; }
+
+    /* ===== BUTTON STATES (after click) ===== */
+    .btn-done {
+      background: rgba(255,255,255,0.05) !important;
+      color: #64748b !important;
+      box-shadow: none !important;
+      border-color: rgba(255,255,255,0.1) !important;
+      transform: none !important;
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      body { padding: 0; }
+      #pdf-content { padding: 16px 14px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+      .action-panel { border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 12px 14px; }
+      h1 { font-size: 14px; padding: 8px 12px; letter-spacing: 1px; }
+      .logo { width: 80px; }
+      .logo-center { font-size: 22px; }
+      .form-row > label { min-width: 140px; }
+      .equipe { padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="copyright-bar">&copy; 2025 Leonildo.Neumann</div>
+
+<div id="pdf-content">
+  <!-- HEADER -->
+  <div class="logo-container">
+    <img src="logo-smdsm.png" crossorigin="anonymous" alt="Prefeitura" class="logo">
+    <span class="logo-center">SMDSM</span>
+    <img src="logo-setran.png" crossorigin="anonymous" alt="Setran" class="logo">
+  </div>
+
+  <h1>Relatório de Atendimento de Ocorrência</h1>
+
+  <!-- NUMERO / ANO -->
+  <div class="numero-row">
+    <span>Número:</span>
+    <input type="text" name="numero" readonly>
+    <span>Ano:</span>
+    <input type="text" name="ano" class="ano-input">
+  </div>
+
+  <!-- DATA / HORAS -->
+  <div class="form-row">
+    <label>Data: <input type="date" name="data"></label>
+    <label>Hora Início: <input type="time" name="hora_inicio"></label>
+    <label>Hora Término: <input type="time" name="hora_termino"></label>
+  </div>
+
+  <!-- SOLICITANTE / TELEFONE -->
+  <div class="form-row">
+    <label>Solicitante: <input type="text" name="solicitante"></label>
+    <label>Telefone: <input type="text" name="telefone" placeholder="(00) 00000-0000"></label>
+  </div>
+
+  <!-- LOCAL -->
+  <label>Local da Ocorrência:
+    <input type="text" name="local" id="local" placeholder="Ative a localização para preencher automaticamente">
+  </label>
+
+  <!-- SITUACAO -->
+  <label>Situação Informada:
+    <textarea name="situacao" class="mini"></textarea>
+  </label>
+
+  <!-- RELATORIO -->
+  <label>Relatório do Atendimento e Ações Realizadas:
+    <textarea name="relatorio"></textarea>
+  </label>
+
+  <!-- DADOS COMPLEMENTARES -->
+  <div class="form-row">
+    <label>Autos de Infração Lavrados: <input type="text" name="autos"></label>
+    <label>Pessoas Atendidas: <input type="text" name="pessoas_atendidas"></label>
+  </div>
+  <label>Veículos Recolhidos: <input type="text" name="veiculos"></label>
+
+  <!-- EQUIPE -->
+  <div class="equipe">
+    <div class="equipe-label">EQUIPE</div>
+    <div class="form-row">
+      <label>Agente 1 (Responsável): <input type="text" name="responsavel"></label>
+      <label>Agente 2: <input type="text" name="assinatura2"></label>
+    </div>
+    <div class="form-row">
+      <label>Agente 3: <input type="text" name="assinatura3"></label>
+      <label>Agente 4: <input type="text" name="assinatura4"></label>
+    </div>
+    <label>VTR(s): <input type="text" name="vtr"></label>
+  </div>
+
+  <!-- ASSINATURA -->
+  <div class="assinatura">
+    <label>Assinaturas (Agentes 1, 2, 3 e 4):</label>
+    <canvas id="assinatura" width="690" height="170"></canvas>
+  </div>
+
+  <!-- OBS -->
+  <div class="obs-box">
+    <strong>OBS:</strong> Este documento é uma coleta preliminar de dados, para controle de atendimentos de ACIDENTES/OCORRÊNCIA da SMDSM, e não substitui o registro realizado por outros órgãos.
+  </div>
+
+  <div class="neumann">&copy; 2025 Leonildo.Neumann</div>
+
+  <!-- FOTOS (inside PDF content) -->
+  <input type="file" id="fotoInput" accept="image/*" multiple style="display:none">
+  <div id="fotos-container">
+    <label>Fotos do Local:</label><br>
+  </div>
+</div>
+
+<!-- ACTION PANEL -->
+<div class="action-panel">
+  <button class="btn btn-outline" onclick="limparAssinatura()">Limpar Assinaturas</button>
+  <button class="btn btn-outline" onclick="document.getElementById('fotoInput').click()">Incluir Fotos no Relatório</button>
+  <button type="button" class="btn btn-finalizar" onclick="obterNumeroGlobal(); this.classList.add('btn-done'); this.innerHTML='✓ Relatório Finalizado';" style="border: 2px solid rgba(255,255,255,0.2)">Finalizar Relatório</button>
+  <button class="btn btn-blue" onclick="compartilharPDF(); this.classList.add('btn-done'); this.innerHTML='✓ PDF Compartilhado';">Compartilhar PDF</button>
+  <button class="btn btn-cta" onclick="gerarPDF(); this.classList.add('btn-done'); this.innerHTML='✓ PDF Baixado';">Baixar PDF</button>
+</div>
+
+<!-- FOTOS DA OCORRÊNCIA -->
+<div class="photos-section">
+  <label>Fotos da Ocorrência:</label>
+  <input type="file" id="fotosOcorrencia" accept="image/*" multiple>
+  <button class="btn btn-primary" onclick="compartilharFotos()">Compartilhar Fotos</button>
+</div>
+
+<!-- CTB LINK -->
+<a href="BUSCA CTB capítulo XV.html" target="_blank" class="botao botao-ctb">CTB Capítulo XV (Das Infrações)</a>
+
+<!-- CTB DIGITAL -->
+<a href="https://www.ctbdigital.com.br/busca-artigo" target="_blank" class="botao botao-digital">
+  <img src="https://ec8cdf0b81.cbaul-cdnwnd.com/4862c32e4e9e39e3136f5b1c72516de8/200000017-b30b7b30b9/450/Captura%20de%20tela%202025-09-12%20202715.webp?ph=ec8cdf0b81" alt="CTB Digital">
+</a>
+
+<!-- TERMS -->
+<div class="terms-bar">
+  <a href="termos de uso.html" target="_blank">Termos de Uso</a>
+</div>
+
+<script>
+// ===== CANVAS / ASSINATURA =====
+const canvas = document.getElementById('assinatura');
+const ctx = canvas.getContext('2d');
+let desenhando = false;
+
+function getPos(event) {
+  if (event.touches) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (event.touches[0].clientX - rect.left) * scaleX,
+      y: (event.touches[0].clientY - rect.top) * scaleY
+    };
+  } else {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: event.offsetX * scaleX,
+      y: event.offsetY * scaleY
+    };
+  }
+}
+function iniciarDesenho(e) {
+  desenhando = true;
+  const pos = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(pos.x, pos.y);
+}
+function desenhar(e) {
+  if (!desenhando) return;
+  e.preventDefault();
+  const pos = getPos(e);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+}
+function pararDesenho() { desenhando = false; }
+
+canvas.addEventListener('mousedown', iniciarDesenho);
+canvas.addEventListener('mousemove', desenhar);
+canvas.addEventListener('mouseup', pararDesenho);
+canvas.addEventListener('mouseleave', pararDesenho);
+canvas.addEventListener('touchstart', iniciarDesenho, { passive: false });
+canvas.addEventListener('touchmove', desenhar, { passive: false });
+canvas.addEventListener('touchend', pararDesenho);
+
+function limparAssinatura() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
+
+function prepararAssinatura(clone) {
+  const canvasOriginal = document.getElementById('assinatura');
+  const assinaturaClone = clone.querySelector('#assinatura');
+  if (canvasOriginal && assinaturaClone) {
+    const imgData = canvasOriginal.toDataURL();
+    const img = document.createElement('img');
+    img.src = imgData;
+    img.style.border = '1px solid #000';
+    img.width = canvasOriginal.width;
+    img.height = canvasOriginal.height;
+    assinaturaClone.parentNode.replaceChild(img, assinaturaClone);
+  }
+}
+
+// ===== RELATÓRIO EM ANDAMENTO (localStorage) =====
+function salvarRelatorioEmAndamento(numero, ano) {
+  localStorage.setItem('relatorio_em_andamento', numero);
+  localStorage.setItem('ano_relatorio_em_andamento', ano);
+}
+function limparRelatorioEmAndamento() {
+  localStorage.removeItem('relatorio_em_andamento');
+  localStorage.removeItem('ano_relatorio_em_andamento');
+}
+function recuperarRelatorioSalvo() {
+  return {
+    numero: localStorage.getItem('relatorio_em_andamento'),
+    ano: localStorage.getItem('ano_relatorio_em_andamento')
+  };
+}
+
+// ===== NOME DO ARQUIVO PDF =====
+function getNumeroRelatorio() {
+  const numero = document.querySelector('input[name="numero"]').value.trim();
+  const agora = new Date();
+  const data = agora.toLocaleDateString('pt-BR').split('/').reverse().join('-');
+  const hora = agora.toTimeString().split(' ')[0].replace(/:/g, '-');
+  if (numero) {
+    return `relatorio_${numero}_${data}_${hora}.pdf`;
+  } else {
+    return `relatorio_${data}_${hora}.pdf`;
+  }
+}
+
+// ===== VALIDAÇÃO =====
+function validarNumeroRelatorio() {
+  const campoNumero = document.querySelector('input[name="numero"]');
+  if (!campoNumero || campoNumero.value.trim() === '') {
+    alert('Clique no botão Finalizar Relatório antes de gerar o PDF.');
+    campoNumero.focus();
+    return false;
+  }
+  return true;
+}
+
+// ===== GERAR PDF =====
+function gerarPDF() {
+  if (!validarNumeroRelatorio()) return;
+  const original = document.getElementById('pdf-content');
+  const clone = original.cloneNode(true);
+  const textareas = clone.querySelectorAll('textarea');
+  textareas.forEach(textarea => {
+    const div = document.createElement('div');
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.border = '1px solid #ccc';
+    div.style.padding = '5px';
+    div.style.minHeight = '45px';
+    div.style.textTransform = 'none';
+    div.style.fontSize = '13px';
+    div.style.backgroundColor = 'white';
+    div.style.color = 'darkblue';
+    div.textContent = textarea.value;
+    textarea.parentNode.replaceChild(div, textarea);
+  });
+  prepararAssinatura(clone);
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  const opt = {
+    margin: [5, 5, 5, 5],
+    filename: getNumeroRelatorio(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 3,
+      useCORS: true,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(clone).save().then(() => {
+    document.body.removeChild(container);
+    limparRelatorioEmAndamento();
+  });
+}
+
+// ===== COMPARTILHAR PDF =====
+async function compartilharPDF() {
+  if (!validarNumeroRelatorio()) return;
+  const original = document.getElementById('pdf-content');
+  const clone = original.cloneNode(true);
+  const textareas = clone.querySelectorAll('textarea');
+  textareas.forEach(textarea => {
+    const div = document.createElement('div');
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.border = '1px solid #ccc';
+    div.style.padding = '5px';
+    div.style.minHeight = '45px';
+    div.style.textTransform = 'none';
+    div.style.fontSize = '13px';
+    div.style.backgroundColor = 'white';
+    div.style.color = 'darkblue';
+    div.textContent = textarea.value;
+    textarea.parentNode.replaceChild(div, textarea);
+  });
+  prepararAssinatura(clone);
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.appendChild(clone);
+  document.body.appendChild(container);
+
+  const opt = {
+    margin: [5, 5, 5, 5],
+    filename: getNumeroRelatorio(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+      scale: 3,
+      useCORS: true,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  const blob = await html2pdf().set(opt).from(clone).outputPdf('blob');
+  const file = new File([blob], getNumeroRelatorio(), { type: 'application/pdf' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({
+        title: 'Relatório de Ocorrência',
+        text: 'Confira o relatório preenchido.',
+        files: [file]
+      });
+    } catch (err) {
+      alert('Compartilhamento cancelado ou falhou.');
+    }
+  } else {
+    alert('Compartilhamento de arquivos não suportado neste navegador.');
+  }
+
+  document.body.removeChild(container);
+  limparRelatorioEmAndamento();
+}
+
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js')
+    .then(() => console.log('Service Worker registrado com sucesso'))
+    .catch(error => console.log('Erro ao registrar o Service Worker:', error));
+}
+
+// ===== GPS / GEOLOCATION =====
+function preencherEndereco() {
+  if (!('geolocation' in navigator)) {
+    alert("Geolocalização não suportada neste dispositivo.");
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
+          {
+            headers: {
+              'Accept-Language': 'pt-BR',
+              'User-Agent': 'RelatorioOcorrencia/1.0'
+            }
+          }
+        );
+        if (!response.ok) throw new Error('Erro HTTP');
+        const data = await response.json();
+        const endereco = [
+          data.address.road,
+          data.address.house_number,
+          data.address.suburb,
+          data.address.city || data.address.town
+        ].filter(Boolean).join(' - ');
+        document.getElementById('local').value =
+          endereco || 'Localização obtida, edite se necessário';
+      } catch (e) {
+        document.getElementById('local').value =
+          `Lat: ${lat.toFixed(6)}, Lon: ${lon.toFixed(6)} (edite manualmente)`;
+      }
+    },
+    (error) => {
+      alert("Não foi possível obter a localização. Verifique GPS e permissões.");
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 0
+    }
+  );
+}
+
+// ===== INIT ON LOAD =====
+window.addEventListener('load', () => {
+  setTimeout(() => { preencherEndereco(); }, 800);
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const salvo = recuperarRelatorioSalvo();
+  if (salvo.numero) {
+    setTimeout(() => {
+      const continuar = confirm(
+        `Existe um relatório em andamento.\n\nDeseja retomar o nº ${salvo.numero}?`
+      );
+      if (continuar) {
+        const campoNumero = document.querySelector('input[name="numero"]');
+        const campoAno = document.querySelector('input[name="ano"]');
+        if (campoNumero) campoNumero.value = salvo.numero;
+        if (campoAno) campoAno.value = salvo.ano;
+      } else {
+        limparRelatorioEmAndamento();
+      }
+    }, 500);
+  }
+
+  const agora = new Date();
+  const campoAno = document.querySelector('input[name="ano"]');
+  if (campoAno && !campoAno.value) {
+    campoAno.value = agora.getFullYear();
+  }
+
+  const campoData = document.querySelector('input[name="data"]');
+  if (campoData && !campoData.value) {
+    const yyyy = agora.getFullYear();
+    const mm = String(agora.getMonth() + 1).padStart(2, '0');
+    const dd = String(agora.getDate()).padStart(2, '0');
+    campoData.value = `${yyyy}-${mm}-${dd}`;
+  }
+
+  const campoLocal = document.getElementById('local');
+  if (campoLocal && !campoLocal.value) {
+    try { preencherEndereco(); } catch (e) {}
+  }
+});
+
+// ===== OBTER NÚMERO GLOBAL =====
+async function obterNumeroGlobal() {
+  const btn = event?.target;
+  const inputNumero = document.querySelector('input[name="numero"]');
+  const inputAno = document.querySelector('input[name="ano"]');
+  const salvo = recuperarRelatorioSalvo();
+
+  if (salvo.numero) {
+    inputNumero.value = salvo.numero;
+    inputAno.value = salvo.ano;
+    alert('Número recuperado do relatório em andamento.');
+    return;
+  }
+
+  if (btn) btn.disabled = true;
+  try {
+    const response = await fetch(
+      'https://script.google.com/macros/s/AKfycbzX6YyTI70dNpfQh9XBcXhYpEGfud6uYh29e3vFuhtqqjYae6VseboqHrLCsqS-R_02/exec'
+    );
+    const data = await response.json();
+    inputNumero.value = data.numero;
+    inputAno.value = data.ano;
+    salvarRelatorioEmAndamento(data.numero, data.ano);
+  } catch (err) {
+    alert('Sem conexão. Número não sincronizado.');
+    console.error(err);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+// ===== FOTOS (até 3) =====
+const fotoInput = document.getElementById('fotoInput');
+const fotosContainer = document.getElementById('fotos-container');
+
+fotoInput.addEventListener('change', (event) => {
+  fotosContainer.innerHTML = '<label>Fotos do Local:</label><br>';
+  const files = Array.from(event.target.files);
+  files.slice(0, 3).forEach((file, index) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const div = document.createElement('div');
+      div.classList.add('foto-box');
+      div.innerHTML = `<p>Foto ${index + 1}</p><img src="${e.target.result}">`;
+      fotosContainer.appendChild(div);
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// ===== COMPARTILHAR FOTOS =====
+async function compartilharFotos() {
+  const input = document.getElementById('fotosOcorrencia');
+  const inputNumero = document.querySelector('input[name="numero"]');
+  if (!input.files || input.files.length === 0) {
+    alert('Nenhuma foto selecionada.');
+    return;
+  }
+  const numeroRelatorio = inputNumero && inputNumero.value ? inputNumero.value : 'sem_numero';
+  const arquivos = Array.from(input.files);
+  const arquivosRenomeados = arquivos.map((file, index) => {
+    const ext = file.name.split('.').pop();
+    return new File(
+      [file],
+      `foto_ocorrencia_${numeroRelatorio}_${index + 1}.${ext}`,
+      { type: file.type }
+    );
+  });
+  if (navigator.canShare && navigator.canShare({ files: arquivosRenomeados })) {
+    try {
+      await navigator.share({
+        title: 'Fotos da Ocorrência',
+        text: `Fotos do relatório de ocorrência ${numeroRelatorio}.`,
+        files: arquivosRenomeados
+      });
+    } catch (err) { }
+  } else {
+    alert('Este navegador não suporta compartilhamento de arquivos.');
+  }
+}
+
+/* Disable context menu */
+        // Garante a execução após o HTML ser processado pelo navegador
+        window.addEventListener('load', () => {
+            
+            // Bloqueio do menu de contexto com suporte a elementos filhos
+            document.addEventListener('contextmenu', e => {
+                const tagsPermitidas = ['INPUT', 'TEXTAREA', 'IMG'];
+                
+                // Busca se o clique foi na tag ou dentro dela
+                if (e.target.closest(tagsPermitidas.join(','))) {
+                    return; 
+                }
+                e.preventDefault();
+            });
+
+            // Bloqueio das teclas de inspeção (F12, Ctrl+Shift+I, etc.)
+            document.addEventListener('keydown', e => {
+                if (
+                    e.key === 'F12' || 
+                    (e.ctrlKey && e.shiftKey && ['I', 'J', 'C'].includes(e.key)) || 
+                    (e.ctrlKey && e.key === 'u')
+                ) {
+                    e.preventDefault();
+                }
+            });
+            
+        });
+</script>
+
+</body>
+</html>
