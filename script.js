@@ -323,7 +323,7 @@ async function obterNumeroGlobal() {
   if (btn) btn.disabled = true;
   try {
     const response = await fetch(
-      'https://script.google.com/macros/s/AKfycbzX6YyTI70dNpfQh9XBcXhYpEGfud6uYh29e3vFuhtqqjYae6VseboqHrLCsqS-R_02/exec'
+      'https://script.google.com/macros/s/AKfycbykx6FemWHxHDE7xI1ZmRJzLRVqiHHdJcJywiXVq8osJofc5WMkLgJmS_e335u9RMhK/exec'
     );
     const data = await response.json();
     inputNumero.value = data.numero;
