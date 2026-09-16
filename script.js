@@ -128,31 +128,19 @@ function gerarPDF() {
   document.body.appendChild(container);
 
   const opt = {
-    margin: [10, 10, 10, 10],
-
+    margin: [5, 5, 5, 5],
     filename: getNumeroRelatorio(),
-
-    image: {
-        type: 'jpeg',
-        quality: 0.98
-    },
-
+    image: { type: 'jpeg', quality: 0.98 },
     html2canvas: {
-        scale: 2,
-        useCORS: true,
-        scrollY: 0
+      scale: 3,
+      useCORS: true,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight
     },
-
-    pagebreak: {
-        mode: ['css', 'legacy']
-    },
-
-    jsPDF: {
-        unit: 'mm',
-        format: 'a4',
-        orientation: 'portrait'
-    }
-};
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
 
   html2pdf().set(opt).from(clone).save().then(() => {
     document.body.removeChild(container);
