@@ -10,14 +10,12 @@ function getPos(event) {
     return { x: event.offsetX, y: event.offsetY };
   }
 }
-
 function iniciarDesenho(e) {
   desenhando = true;
   const pos = getPos(e);
   ctx.beginPath();
   ctx.moveTo(pos.x, pos.y);
 }
-
 function desenhar(e) {
   if (!desenhando) return;
   e.preventDefault();
@@ -25,7 +23,6 @@ function desenhar(e) {
   ctx.lineTo(pos.x, pos.y);
   ctx.stroke();
 }
-
 function pararDesenho() { desenhando = false; }
 
 canvas.addEventListener('mousedown', iniciarDesenho);
@@ -46,13 +43,11 @@ function prepararAssinatura(clone) {
     const img = document.createElement('img');
     img.src = imgData;
     img.style.border = '1px solid #000';
-    img.style.breakInside = 'avoid'; // Evita cortar a assinatura no meio
     img.width = canvasOriginal.width;
     img.height = canvasOriginal.height;
     assinaturaClone.parentNode.replaceChild(img, assinaturaClone);
   }
 }
-
 // =============================
 // 📌 RELATÓRIO EM ANDAMENTO
 // =============================
@@ -80,14 +75,15 @@ function getNumeroRelatorio() {
   const data = agora.toLocaleDateString('pt-BR').split('/').reverse().join('-');
   const hora = agora.toTimeString().split(' ')[0].replace(/:/g, '-');
   if (numero) {
-    return `relatorio_${numero}_${data}_${hora}.pdf`;
+  return `relatorio_${numero}_${data}_${hora}.pdf`;
   } else {
-    return `relatorio_${data}_${hora}.pdf`;
+  return `relatorio_${data}_${hora}.pdf`; // nome padrão caso esteja vazio
   }
 }
 
 function validarNumeroRelatorio() {
   const campoNumero = document.querySelector('input[name="numero"]');
+
   if (!campoNumero || campoNumero.value.trim() === '') {
     alert('⚠️ Clique no botão Finalizar Relatório antes de gerar o PDF.');
     campoNumero.focus();
@@ -96,22 +92,11 @@ function validarNumeroRelatorio() {
   return true;
 }
 
-// Objeto de configuração global e centralizado para evitar cortes verticais
-const obterConfiguracaoPDF = () => ({
-  margin:, // Margem confortável para folhas A4
-  filename: getNumeroRelatorio(),
-  image: { type: 'jpeg', quality: 0.98 },
-  html2canvas: { 
-    scale: 2, // 2 é o ideal para evitar estouro de memória e manter nitidez
-    useCORS: true,
-    scrollY: 0,
-    windowWidth: 1024 // 💡 FIXO: Força a renderização com largura de desktop, impedindo o corte vertical
-  },
-  pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },    
-  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-});
+function gerarPDF() {
+  if (!validarNumeroRelatorio()) return;
 
-function transformarTextareas(clone) {
+  const original = document.getElementById('pdf-content');
+  const clone = original.cloneNode(true);
   const textareas = clone.querySelectorAll('textarea');
   textareas.forEach(textarea => {
     const div = document.createElement('div');
@@ -123,54 +108,79 @@ function transformarTextareas(clone) {
     div.style.fontSize = '14px';
     div.style.backgroundColor = 'white';
     div.style.color = 'blue';
-    div.style.breakInside = 'avoid'; // 💡 Evita que caixas de texto quebrem ao meio verticalmente
     div.textContent = textarea.value;
     textarea.parentNode.replaceChild(div, textarea);
   });
+  prepararAssinatura(clone);
+  const container = document.createElement('div');
+
+container.style.position = 'fixed';
+container.style.left = '0';
+container.style.top = '0';
+container.style.width = '210mm';
+container.style.backgroundColor = '#ffffff';
+container.style.zIndex = '-9999';
+
+clone.style.width = '190mm';
+clone.style.margin = '0 auto';
+clone.style.backgroundColor = '#D6FFFF';
+
+container.appendChild(clone);
+document.body.appendChild(container);
+  
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: getNumeroRelatorio(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+    scale: 2,
+    useCORS: true,
+    scrollY: 0,
+    backgroundColor: '#ffffff'
+},
+pagebreak: { mode: ['css', 'legacy'] },    
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(clone).save().then(() => {
+  document.body.removeChild(container);
+
+  // 🧹 Finalizou → libera o número
+  limparRelatorioEmAndamento();
+});
 }
 
-function gerarPDF() {
-  if (!validarNumeroRelatorio()) return;
+function validarNumeroRelatorio() {
+  const campoNumero = document.querySelector('input[name="numero"]');
 
-  const original = document.getElementById('pdf-content');
-  const clone = original.cloneNode(true);
-  
-  // Ajusta o clone para a largura correta de renderização
-  clone.style.width = '1024px';
-
-  transformarTextareas(clone);
-  prepararAssinatura(clone);
-
-  const container = document.createElement('div');
-  container.style.position = 'absolute';
-  container.style.left = '-9999px';
-  container.appendChild(clone);
-  document.body.appendChild(container);
-  
-  const opt = obterConfiguracaoPDF();
-
-  html2pdf().set(opt).from(clone).save()
-    .then(() => {
-      if (container && container.parentNode) {
-        container.parentNode.removeChild(container);
-      }
-      limparRelatorioEmAndamento();
-    })
-    .catch(err => {
-      console.error("Erro ao gerar PDF:", err);
-      if (container && container.parentNode) container.parentNode.removeChild(container);
-    });
+  if (!campoNumero || campoNumero.value.trim() === '') {
+    alert('⚠️ Clique no botão Finalizar Relatório antes de gerar o PDF.');
+    campoNumero.focus();
+    return false;
+  }
+  return true;
 }
 
 async function compartilharPDF() {
   if (!validarNumeroRelatorio()) return;
-  
   const original = document.getElementById('pdf-content');
   const clone = original.cloneNode(true);
-  
-  clone.style.width = '1024px';
 
-  transformarTextareas(clone);
+  const textareas = clone.querySelectorAll('textarea');
+  textareas.forEach(textarea => {
+    const div = document.createElement('div');
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.border = '1px solid #ccc';
+    div.style.padding = '5px';
+    div.style.minHeight = '45px';
+    div.style.fontWeight = 'bold';
+    div.style.fontSize = '14px';
+    div.style.backgroundColor = 'white';
+    div.style.color = 'blue';
+    div.textContent = textarea.value;
+    textarea.parentNode.replaceChild(div, textarea);
+  });
+
   prepararAssinatura(clone);
 
   const container = document.createElement('div');
@@ -179,36 +189,42 @@ async function compartilharPDF() {
   container.appendChild(clone);
   document.body.appendChild(container);
 
-  const opt = obterConfiguracaoPDF();
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: getNumeroRelatorio(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: {
+            scale: 2,
+            useCORS: true,
+            scrollY: 0,
+            backgroundColor: '#ffffff'
+        },
+    pagebreak: { mode: ['css', 'legacy'] },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
 
-  try {
-    const blob = await html2pdf().set(opt).from(clone).outputPdf('blob');
-    const file = new File([blob], getNumeroRelatorio(), { type: 'application/pdf' });
+  const blob = await html2pdf().set(opt).from(clone).outputPdf('blob');
 
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+  const file = new File([blob], getNumeroRelatorio(), { type: 'application/pdf' });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
       await navigator.share({
         title: 'Relatório de Ocorrência',
         text: 'Confira o relatório preenchido.',
         files: [file]
       });
-    } else {
-      alert('Compartilhamento de arquivos não suportado neste navegador.');
+    } catch (err) {
+      alert('Compartilhamento cancelado ou falhou.');
     }
-  } catch (err) {
-    console.error('Falha no compartilhamento:', err);
-    alert('Compartilhamento cancelado ou falhou.');
-  } finally {
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container);
-    }
-    limparRelatorioEmAndamento();
+  } else {
+    alert('Compartilhamento de arquivos não suportado neste navegador.');
   }
-}
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js')
-    .then(() => console.log('Service Worker registrado com sucesso'))
-    .catch(error => console.log('Erro ao registrar o Service Worker:', error));
+  document.body.removeChild(container);
+
+// 🧹 Finalizou → libera o número
+limparRelatorioEmAndamento();
 }
 
 if ('serviceWorker' in navigator) {
@@ -350,7 +366,7 @@ async function obterNumeroGlobal() {
 
   try {
     const response = await fetch(
-      'https://script.google.com/macros/s/AKfycbykx6FemWHxHDE7xI1ZmRJzLRVqiHHdJcJywiXVq8osJofc5WMkLgJmS_e335u9RMhK/exec'
+      'https://script.google.com/macros/s/AKfycbzX6YyTI70dNpfQh9XBcXhYpEGfud6uYh29e3vFuhtqqjYae6VseboqHrLCsqS-R_02/exec'
     );
 
     const data = await response.json();
