@@ -142,11 +142,19 @@ pagebreak: { mode: ['css', 'legacy'] },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
-  html2pdf().set(opt).from(clone).save().then(() => {
-  document.body.removeChild(container);
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
 
-  // 🧹 Finalizou → libera o número
-  limparRelatorioEmAndamento();
+        html2pdf()
+            .set(opt)
+            .from(clone)
+            .save()
+            .then(() => {
+                document.body.removeChild(container);
+                limparRelatorioEmAndamento();
+            });
+
+    });
 });
 }
 
