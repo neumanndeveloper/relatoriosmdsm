@@ -103,7 +103,7 @@ function gerarPDF() {
     div.style.whiteSpace = 'pre-wrap';
     div.style.border = '1px solid #ccc';
     div.style.padding = '5px';
-    
+    div.style.minHeight = '225px';
     div.style.fontWeight = 'bold';
     div.style.fontSize = '14px';
     div.style.backgroundColor = 'white';
@@ -163,7 +163,7 @@ async function compartilharPDF() {
     div.style.whiteSpace = 'pre-wrap';
     div.style.border = '1px solid #ccc';
     div.style.padding = '5px';
-    
+    div.style.minHeight = '225px';
     div.style.fontWeight = 'bold';
     div.style.fontSize = '14px';
     div.style.backgroundColor = 'white';
