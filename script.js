@@ -92,71 +92,400 @@ function validarNumeroRelatorio() {
   return true;
 }
 
-function gerarPDF() {
-  if (!validarNumeroRelatorio()) return;
+async function gerarPDF() {
 
-  const original = document.getElementById('pdf-content');
-  const clone = original.cloneNode(true);
-  const textareas = clone.querySelectorAll('textarea');
-  textareas.forEach(textarea => {
-    const div = document.createElement('div');
-    div.style.whiteSpace = 'pre-wrap';
-    div.style.border = '1px solid #ccc';
-    div.style.padding = '5px';
-    div.style.minHeight = '45px';
-    div.style.fontWeight = 'bold';
-    div.style.fontSize = '14px';
-    div.style.backgroundColor = 'white';
-    div.style.color = 'blue';
-    div.textContent = textarea.value;
-    textarea.parentNode.replaceChild(div, textarea);
-  });
-  prepararAssinatura(clone);
-  const container = document.createElement('div');
+    const numero = getNumeroRelatorio();
 
-container.style.position = 'fixed';
-container.style.left = '0';
-container.style.top = '0';
-container.style.width = '210mm';
-container.style.backgroundColor = '#ffffff';
-container.style.zIndex = '-9999';
+    if (!numero) {
+        alert("Informe o número do relatório antes de gerar o PDF.");
+        return;
+    }
 
-clone.style.width = '190mm';
-clone.style.margin = '0 auto';
-clone.style.backgroundColor = '#D6FFFF';
+    const original = document.getElementById("pdf-content");
 
-container.appendChild(clone);
-document.body.appendChild(container);
-  
-  const opt = {
-    margin: [10, 10, 10, 10],
-    filename: getNumeroRelatorio(),
-    image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-    scale: 2,
-    useCORS: true,
-    scrollY: 0,
-    backgroundColor: '#ffffff'
-},
-pagebreak: { mode: ['css', 'legacy'] },    
-    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-  };
+    if (!original) {
+        alert("Não foi possível localizar o conteúdo do relatório.");
+        return;
+    }
 
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+    // =========================================================
+    // CRIA O CONTAINER TEMPORÁRIO DO PDF
+    // =========================================================
 
-        html2pdf()
-            .set(opt)
-            .from(clone)
-            .save()
-            .then(() => {
-                document.body.removeChild(container);
-                limparRelatorioEmAndamento();
-            });
+    const container = document.createElement("div");
 
+    container.style.position = "fixed";
+    container.style.left = "0";
+    container.style.top = "0";
+    container.style.width = "210mm";
+    container.style.background = "#ffffff";
+    container.style.zIndex = "-9999";
+    container.style.padding = "0";
+    container.style.margin = "0";
+
+    document.body.appendChild(container);
+
+
+    // =========================================================
+    // FUNÇÃO AUXILIAR
+    // =========================================================
+
+    function prepararBloco(bloco) {
+
+        bloco.style.width = "190mm";
+        bloco.style.margin = "0 auto";
+        bloco.style.padding = "15px 10px";
+        bloco.style.boxSizing = "border-box";
+        bloco.style.backgroundColor = "#D6FFFF";
+        bloco.style.color = "#132c0d";
+        bloco.style.fontFamily = "Arial, sans-serif";
+        bloco.style.fontSize = "16px";
+        bloco.style.fontWeight = "bold";
+    }
+
+
+    // =========================================================
+    // CLONA O CONTEÚDO ORIGINAL
+    // =========================================================
+
+    const clone = original.cloneNode(true);
+
+
+    // =========================================================
+    // TRANSFORMA TEXTAREAS EM DIVS
+    // =========================================================
+
+    const textareas = clone.querySelectorAll("textarea");
+
+    textareas.forEach(textarea => {
+
+        const div = document.createElement("div");
+
+        div.style.whiteSpace = "pre-wrap";
+        div.style.border = "1px solid #ccc";
+        div.style.padding = "5px";
+        div.style.minHeight = "45px";
+        div.style.boxSizing = "border-box";
+        div.style.fontSize = "13px";
+        div.style.fontFamily = "Arial, sans-serif";
+        div.style.backgroundColor = "#ffffff";
+        div.style.color = "darkblue";
+        div.style.width = "100%";
+
+        div.textContent = textarea.value;
+
+        textarea.replaceWith(div);
     });
-});
+
+
+    // =========================================================
+    // PREPARA A ASSINATURA
+    // =========================================================
+
+    prepararAssinatura(clone);
+
+
+    // =========================================================
+    // LOCALIZA AS 3 PARTES
+    // =========================================================
+
+    const campoVeiculos = clone.querySelector(
+        'input[name="veiculos"]'
+    );
+
+    const equipe = clone.querySelector(".equipe");
+
+    const neumann = clone.querySelector(".neumann");
+
+    const fotos = clone.querySelector("#fotos-container");
+
+
+    // =========================================================
+    // VERIFICA SE OS ELEMENTOS FORAM ENCONTRADOS
+    // =========================================================
+
+    if (!campoVeiculos) {
+        document.body.removeChild(container);
+        alert("Não foi possível localizar o campo Veículos.");
+        return;
+    }
+
+    if (!equipe) {
+        document.body.removeChild(container);
+        alert("Não foi possível localizar a div .equipe.");
+        return;
+    }
+
+    if (!fotos) {
+        document.body.removeChild(container);
+        alert("Não foi possível localizar #fotos-container.");
+        return;
+    }
+
+
+    // =========================================================
+    // PÁGINA 1
+    // =========================================================
+
+    const pagina1 = document.createElement("div");
+
+    pagina1.className = "pagina-pdf";
+
+    prepararBloco(pagina1);
+
+    pagina1.style.minHeight = "277mm";
+    pagina1.style.boxSizing = "border-box";
+
+    // Copia tudo desde o início até Veículos
+    let elemento = clone.firstElementChild;
+
+    while (elemento) {
+
+        const proximo = elemento.nextElementSibling;
+
+        pagina1.appendChild(elemento.cloneNode(true));
+
+        // Verifica se este elemento contém o campo Veículos
+        if (
+            elemento === campoVeiculos ||
+            elemento.contains(campoVeiculos)
+        ) {
+            break;
+        }
+
+        elemento = proximo;
+    }
+
+
+    // =========================================================
+    // PÁGINA 2
+    // =========================================================
+
+    const pagina2 = document.createElement("div");
+
+    pagina2.className = "pagina-pdf";
+
+    prepararBloco(pagina2);
+
+    pagina2.style.minHeight = "277mm";
+    pagina2.style.boxSizing = "border-box";
+
+    // Clona a equipe
+    pagina2.appendChild(equipe.cloneNode(true));
+
+
+    // Adiciona tudo até .neumann
+    let atual = equipe.nextElementSibling;
+
+    while (atual) {
+
+        pagina2.appendChild(atual.cloneNode(true));
+
+        if (
+            atual === neumann ||
+            atual.contains(neumann)
+        ) {
+            break;
+        }
+
+        atual = atual.nextElementSibling;
+    }
+
+
+    // =========================================================
+    // PÁGINA 3 - FOTOS
+    // =========================================================
+
+    const pagina3 = document.createElement("div");
+
+    pagina3.className = "pagina-pdf";
+
+    prepararBloco(pagina3);
+
+    pagina3.style.minHeight = "277mm";
+    pagina3.style.boxSizing = "border-box";
+
+    pagina3.appendChild(fotos.cloneNode(true));
+
+
+    // =========================================================
+    // ADICIONA AS 3 PÁGINAS AO CONTAINER
+    // =========================================================
+
+    container.appendChild(pagina1);
+    container.appendChild(pagina2);
+    container.appendChild(pagina3);
+
+
+    // =========================================================
+    // ESTILO ESPECÍFICO DAS PÁGINAS
+    // =========================================================
+
+    const estilo = document.createElement("style");
+
+    estilo.textContent = `
+
+        .pagina-pdf {
+            width: 190mm !important;
+            min-height: 277mm !important;
+
+            margin: 0 auto !important;
+
+            padding: 15px 10px !important;
+
+            box-sizing: border-box !important;
+
+            background-color: #D6FFFF !important;
+
+            page-break-after: always !important;
+            break-after: page !important;
+
+            overflow: visible !important;
+        }
+
+        .pagina-pdf:last-child {
+            page-break-after: auto !important;
+            break-after: auto !important;
+        }
+
+        .pagina-pdf * {
+            box-sizing: border-box;
+        }
+
+        .foto-box {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+
+            margin-bottom: 10px !important;
+
+            text-align: center;
+        }
+
+        .foto-box img {
+            max-width: 100% !important;
+            max-height: 200px !important;
+
+            object-fit: contain !important;
+
+            display: block;
+            margin: 0 auto;
+        }
+
+        .assinatura {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+        }
+
+    `;
+
+    document.head.appendChild(estilo);
+
+
+    // =========================================================
+    // ESPERA AS IMAGENS
+    // =========================================================
+
+    const imagens = [...container.querySelectorAll("img")];
+
+    await Promise.all(
+        imagens.map(img => {
+
+            if (img.complete && img.naturalWidth > 0) {
+                return Promise.resolve();
+            }
+
+            return new Promise(resolve => {
+
+                img.onload = resolve;
+                img.onerror = resolve;
+
+            });
+        })
+    );
+
+
+    // Dá tempo para o navegador calcular o layout
+    await new Promise(resolve => setTimeout(resolve, 300));
+
+
+    // =========================================================
+    // CONFIGURAÇÃO DO PDF
+    // =========================================================
+
+    const opt = {
+
+        margin: 0,
+
+        filename: numero + ".pdf",
+
+        image: {
+            type: "jpeg",
+            quality: 0.98
+        },
+
+        html2canvas: {
+
+            scale: 2,
+
+            useCORS: true,
+
+            scrollX: 0,
+            scrollY: 0,
+
+            backgroundColor: "#ffffff"
+        },
+
+        pagebreak: {
+
+            mode: ["css", "legacy"]
+        },
+
+        jsPDF: {
+
+            unit: "mm",
+
+            format: "a4",
+
+            orientation: "portrait"
+        }
+    };
+
+
+    // =========================================================
+    // GERA O PDF
+    // =========================================================
+
+    try {
+
+        await html2pdf()
+            .set(opt)
+            .from(container)
+            .save();
+
+        limparRelatorioEmAndamento();
+
+    } catch (erro) {
+
+        console.error("Erro ao gerar PDF:", erro);
+
+        alert(
+            "Ocorreu um erro ao gerar o PDF.\n\n" +
+            "Verifique o console do navegador."
+        );
+
+    } finally {
+
+        // Remove o conteúdo temporário
+        if (container.parentNode) {
+            document.body.removeChild(container);
+        }
+
+        if (estilo.parentNode) {
+            estilo.parentNode.removeChild(estilo);
+        }
+    }
 }
+
 
 function validarNumeroRelatorio() {
   const campoNumero = document.querySelector('input[name="numero"]');
@@ -198,16 +527,17 @@ async function compartilharPDF() {
   document.body.appendChild(container);
 
   const opt = {
-    margin: [10, 10, 10, 10],
+    margin: [5, 5, 5, 5],
     filename: getNumeroRelatorio(),
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: {
-            scale: 2,
-            useCORS: true,
-            scrollY: 0,
-            backgroundColor: '#ffffff'
-        },
-    pagebreak: { mode: ['css', 'legacy'] },
+    html2canvas: { 
+      scale: 3,
+      useCORS: true,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight
+    },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },
     jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
   };
 
@@ -374,7 +704,7 @@ async function obterNumeroGlobal() {
 
   try {
     const response = await fetch(
-      'https://script.google.com/macros/s/AKfycbykx6FemWHxHDE7xI1ZmRJzLRVqiHHdJcJywiXVq8osJofc5WMkLgJmS_e335u9RMhK/exec'
+      'https://script.google.com/macros/s/AKfycbzX6YyTI70dNpfQh9XBcXhYpEGfud6uYh29e3vFuhtqqjYae6VseboqHrLCsqS-R_02/exec'
     );
 
     const data = await response.json();
