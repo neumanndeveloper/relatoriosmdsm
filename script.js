@@ -92,72 +92,30 @@ function validarNumeroRelatorio() {
   return true;
 }
 
+// ===== GERAR PDF =====
 async function gerarPDF() {
 
-    const numero = getNumeroRelatorio();
-
-    if (!numero) {
-        alert("Informe o número do relatório antes de gerar o PDF.");
-        return;
-    }
+    if (!validarNumeroRelatorio()) return;
 
     const original = document.getElementById("pdf-content");
 
     if (!original) {
-        alert("Não foi possível localizar o conteúdo do relatório.");
+        alert("Conteúdo do relatório não encontrado.");
         return;
     }
 
-    // =========================================================
-    // CRIA O CONTAINER TEMPORÁRIO DO PDF
-    // =========================================================
-
-    const container = document.createElement("div");
-
-    container.style.position = "fixed";
-    container.style.left = "0";
-    container.style.top = "0";
-    container.style.width = "210mm";
-    container.style.background = "#ffffff";
-    container.style.zIndex = "-9999";
-    container.style.padding = "0";
-    container.style.margin = "0";
-
-    document.body.appendChild(container);
-
-
-    // =========================================================
-    // FUNÇÃO AUXILIAR
-    // =========================================================
-
-    function prepararBloco(bloco) {
-
-        bloco.style.width = "190mm";
-        bloco.style.margin = "0 auto";
-        bloco.style.padding = "15px 10px";
-        bloco.style.boxSizing = "border-box";
-        bloco.style.backgroundColor = "#D6FFFF";
-        bloco.style.color = "#132c0d";
-        bloco.style.fontFamily = "Arial, sans-serif";
-        bloco.style.fontSize = "16px";
-        bloco.style.fontWeight = "bold";
-    }
-
-
-    // =========================================================
-    // CLONA O CONTEÚDO ORIGINAL
-    // =========================================================
+    // =====================================================
+    // CLONA O RELATÓRIO
+    // =====================================================
 
     const clone = original.cloneNode(true);
 
 
-    // =========================================================
-    // TRANSFORMA TEXTAREAS EM DIVS
-    // =========================================================
+    // =====================================================
+    // CONVERTE TEXTAREAS PARA DIVS
+    // =====================================================
 
-    const textareas = clone.querySelectorAll("textarea");
-
-    textareas.forEach(textarea => {
+    clone.querySelectorAll("textarea").forEach(textarea => {
 
         const div = document.createElement("div");
 
@@ -167,213 +125,129 @@ async function gerarPDF() {
         div.style.minHeight = "45px";
         div.style.boxSizing = "border-box";
         div.style.fontSize = "13px";
-        div.style.fontFamily = "Arial, sans-serif";
-        div.style.backgroundColor = "#ffffff";
+        div.style.backgroundColor = "white";
         div.style.color = "darkblue";
-        div.style.width = "100%";
+        div.style.fontFamily = "Arial, sans-serif";
 
         div.textContent = textarea.value;
 
-        textarea.replaceWith(div);
+        textarea.parentNode.replaceChild(div, textarea);
     });
 
 
-    // =========================================================
-    // PREPARA A ASSINATURA
-    // =========================================================
+    // =====================================================
+    // PREPARA ASSINATURA
+    // =====================================================
 
     prepararAssinatura(clone);
 
 
-    // =========================================================
-    // LOCALIZA AS 3 PARTES
-    // =========================================================
+    // =====================================================
+    // LOCALIZA OS ELEMENTOS
+    // =====================================================
 
-    const campoVeiculos = clone.querySelector(
-        'input[name="veiculos"]'
-    );
-
+    const veiculos = clone.querySelector('input[name="veiculos"]');
     const equipe = clone.querySelector(".equipe");
-
     const neumann = clone.querySelector(".neumann");
-
     const fotos = clone.querySelector("#fotos-container");
 
 
-    // =========================================================
-    // VERIFICA SE OS ELEMENTOS FORAM ENCONTRADOS
-    // =========================================================
+    if (!veiculos || !equipe || !neumann || !fotos) {
 
-    if (!campoVeiculos) {
-        document.body.removeChild(container);
-        alert("Não foi possível localizar o campo Veículos.");
-        return;
-    }
+        alert(
+            "Não foi possível localizar uma das partes do relatório:\n\n" +
+            "Veículos: " + (!!veiculos) + "\n" +
+            "Equipe: " + (!!equipe) + "\n" +
+            "Neumann: " + (!!neumann) + "\n" +
+            "Fotos: " + (!!fotos)
+        );
 
-    if (!equipe) {
-        document.body.removeChild(container);
-        alert("Não foi possível localizar a div .equipe.");
-        return;
-    }
-
-    if (!fotos) {
-        document.body.removeChild(container);
-        alert("Não foi possível localizar #fotos-container.");
         return;
     }
 
 
-    // =========================================================
-    // PÁGINA 1
-    // =========================================================
+    // =====================================================
+    // CONTAINER PRINCIPAL
+    // =====================================================
 
-    const pagina1 = document.createElement("div");
+    const container = document.createElement("div");
 
-    pagina1.className = "pagina-pdf";
-
-    prepararBloco(pagina1);
-
-    pagina1.style.minHeight = "277mm";
-    pagina1.style.boxSizing = "border-box";
-
-    // Copia tudo desde o início até Veículos
-    let elemento = clone.firstElementChild;
-
-    while (elemento) {
-
-        const proximo = elemento.nextElementSibling;
-
-        pagina1.appendChild(elemento.cloneNode(true));
-
-        // Verifica se este elemento contém o campo Veículos
-        if (
-            elemento === campoVeiculos ||
-            elemento.contains(campoVeiculos)
-        ) {
-            break;
-        }
-
-        elemento = proximo;
-    }
+    container.style.position = "fixed";
+    container.style.left = "0";
+    container.style.top = "0";
+    container.style.width = "210mm";
+    container.style.background = "#ffffff";
+    container.style.zIndex = "-9999";
 
 
-    // =========================================================
-    // PÁGINA 2
-    // =========================================================
-
-    const pagina2 = document.createElement("div");
-
-    pagina2.className = "pagina-pdf";
-
-    prepararBloco(pagina2);
-
-    pagina2.style.minHeight = "277mm";
-    pagina2.style.boxSizing = "border-box";
-
-    // Clona a equipe
-    pagina2.appendChild(equipe.cloneNode(true));
-
-
-    // Adiciona tudo até .neumann
-    let atual = equipe.nextElementSibling;
-
-    while (atual) {
-
-        pagina2.appendChild(atual.cloneNode(true));
-
-        if (
-            atual === neumann ||
-            atual.contains(neumann)
-        ) {
-            break;
-        }
-
-        atual = atual.nextElementSibling;
-    }
-
-
-    // =========================================================
-    // PÁGINA 3 - FOTOS
-    // =========================================================
-
-    const pagina3 = document.createElement("div");
-
-    pagina3.className = "pagina-pdf";
-
-    prepararBloco(pagina3);
-
-    pagina3.style.minHeight = "277mm";
-    pagina3.style.boxSizing = "border-box";
-
-    pagina3.appendChild(fotos.cloneNode(true));
-
-
-    // =========================================================
-    // ADICIONA AS 3 PÁGINAS AO CONTAINER
-    // =========================================================
-
-    container.appendChild(pagina1);
-    container.appendChild(pagina2);
-    container.appendChild(pagina3);
-
-
-    // =========================================================
-    // ESTILO ESPECÍFICO DAS PÁGINAS
-    // =========================================================
+    // =====================================================
+    // ESTILO
+    // =====================================================
 
     const estilo = document.createElement("style");
 
     estilo.textContent = `
 
         .pagina-pdf {
-            width: 190mm !important;
-            min-height: 277mm !important;
 
-            margin: 0 auto !important;
+            width: 190mm;
+            min-height: 277mm;
 
-            padding: 15px 10px !important;
+            margin: 0 auto;
 
-            box-sizing: border-box !important;
+            padding: 15px 10px;
 
-            background-color: #D6FFFF !important;
+            box-sizing: border-box;
 
-            page-break-after: always !important;
-            break-after: page !important;
+            background-color: #D6FFFF;
 
-            overflow: visible !important;
+            font-family: Arial, sans-serif;
+
+            font-size: 16px;
+
+            font-weight: bold;
+
+            color: #132c0d;
+
+            overflow: visible;
+
+            page-break-after: always;
+
+            break-after: page;
         }
 
         .pagina-pdf:last-child {
-            page-break-after: auto !important;
-            break-after: auto !important;
+
+            page-break-after: auto;
+
+            break-after: auto;
         }
 
-        .pagina-pdf * {
+        .pagina-pdf input,
+        .pagina-pdf textarea,
+        .pagina-pdf select {
+
+            max-width: 100%;
+
             box-sizing: border-box;
         }
 
-        .foto-box {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+        .pagina-pdf img {
 
-            margin-bottom: 10px !important;
+            max-width: 100%;
+
+            height: auto;
+        }
+
+        .foto-box {
+
+            page-break-inside: avoid;
+
+            break-inside: avoid;
 
             text-align: center;
-        }
 
-        .foto-box img {
-            max-width: 100% !important;
-            max-height: 200px !important;
-
-            object-fit: contain !important;
-
-            display: block;
-            margin: 0 auto;
-        }
-
-        .assinatura {
-            page-break-inside: avoid !important;
-            break-inside: avoid !important;
+            margin-bottom: 10px;
         }
 
     `;
@@ -381,22 +255,132 @@ async function gerarPDF() {
     document.head.appendChild(estilo);
 
 
-    // =========================================================
+    // =====================================================
+    // PÁGINA 1
+    //
+    // Do início até o campo veículos
+    // =====================================================
+
+    const pagina1 = document.createElement("div");
+
+    pagina1.className = "pagina-pdf";
+
+
+    const elementos = [...clone.children];
+
+    for (const elemento of elementos) {
+
+        const copia = elemento.cloneNode(true);
+
+        pagina1.appendChild(copia);
+
+
+        // Encontrou o bloco que contém Veículos
+        if (
+            elemento === veiculos ||
+            elemento.contains(veiculos)
+        ) {
+            break;
+        }
+    }
+
+
+    // =====================================================
+    // PÁGINA 2
+    //
+    // Equipe até Neumann
+    // =====================================================
+
+    const pagina2 = document.createElement("div");
+
+    pagina2.className = "pagina-pdf";
+
+
+    // Adiciona equipe
+    pagina2.appendChild(equipe.cloneNode(true));
+
+
+    // Adiciona os elementos seguintes até Neumann
+    let encontrouEquipe = false;
+
+    for (const elemento of elementos) {
+
+        if (elemento === equipe) {
+            encontrouEquipe = true;
+            continue;
+        }
+
+        if (!encontrouEquipe) {
+            continue;
+        }
+
+        pagina2.appendChild(elemento.cloneNode(true));
+
+        if (
+            elemento === neumann ||
+            elemento.contains(neumann)
+        ) {
+            break;
+        }
+    }
+
+
+    // =====================================================
+    // PÁGINA 3
+    //
+    // Somente fotos
+    // =====================================================
+
+    const pagina3 = document.createElement("div");
+
+    pagina3.className = "pagina-pdf";
+
+
+    // Título
+    const tituloFotos = document.createElement("h3");
+
+    tituloFotos.textContent = "Fotos do Local";
+
+    tituloFotos.style.textAlign = "center";
+
+    pagina3.appendChild(tituloFotos);
+
+
+    // Adiciona fotos
+    pagina3.appendChild(fotos.cloneNode(true));
+
+
+    // =====================================================
+    // MONTA O PDF
+    // =====================================================
+
+    container.appendChild(pagina1);
+
+    container.appendChild(pagina2);
+
+    container.appendChild(pagina3);
+
+    document.body.appendChild(container);
+
+
+    // =====================================================
     // ESPERA AS IMAGENS
-    // =========================================================
+    // =====================================================
 
     const imagens = [...container.querySelectorAll("img")];
 
     await Promise.all(
+
         imagens.map(img => {
 
-            if (img.complete && img.naturalWidth > 0) {
+            if (img.complete) {
                 return Promise.resolve();
             }
 
             return new Promise(resolve => {
 
                 img.onload = resolve;
+
                 img.onerror = resolve;
 
             });
@@ -404,19 +388,19 @@ async function gerarPDF() {
     );
 
 
-    // Dá tempo para o navegador calcular o layout
+    // Pequena espera para o layout
     await new Promise(resolve => setTimeout(resolve, 300));
 
 
-    // =========================================================
+    // =====================================================
     // CONFIGURAÇÃO DO PDF
-    // =========================================================
+    // =====================================================
 
     const opt = {
 
         margin: 0,
 
-        filename: numero + ".pdf",
+        filename: getNumeroRelatorio(),
 
         image: {
             type: "jpeg",
@@ -430,14 +414,13 @@ async function gerarPDF() {
             useCORS: true,
 
             scrollX: 0,
-            scrollY: 0,
 
-            backgroundColor: "#ffffff"
+            scrollY: 0
         },
 
         pagebreak: {
 
-            mode: ["css", "legacy"]
+            mode: ["css"]
         },
 
         jsPDF: {
@@ -451,9 +434,9 @@ async function gerarPDF() {
     };
 
 
-    // =========================================================
-    // GERA O PDF
-    // =========================================================
+    // =====================================================
+    // GERA
+    // =====================================================
 
     try {
 
@@ -469,23 +452,23 @@ async function gerarPDF() {
         console.error("Erro ao gerar PDF:", erro);
 
         alert(
-            "Ocorreu um erro ao gerar o PDF.\n\n" +
-            "Verifique o console do navegador."
+            "Erro ao gerar o PDF.\n\n" +
+            erro.message
         );
 
     } finally {
 
-        // Remove o conteúdo temporário
         if (container.parentNode) {
-            document.body.removeChild(container);
+
+            container.parentNode.removeChild(container);
         }
 
         if (estilo.parentNode) {
+
             estilo.parentNode.removeChild(estilo);
         }
     }
 }
-
 
 function validarNumeroRelatorio() {
   const campoNumero = document.querySelector('input[name="numero"]');
@@ -704,7 +687,7 @@ async function obterNumeroGlobal() {
 
   try {
     const response = await fetch(
-      'https://script.google.com/macros/s/AKfycbzX6YyTI70dNpfQh9XBcXhYpEGfud6uYh29e3vFuhtqqjYae6VseboqHrLCsqS-R_02/exec'
+      'https://script.google.com/macros/s/AKfycbykx6FemWHxHDE7xI1ZmRJzLRVqiHHdJcJywiXVq8osJofc5WMkLgJmS_e335u9RMhK/exec'
     );
 
     const data = await response.json();
