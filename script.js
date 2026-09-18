@@ -92,382 +92,53 @@ function validarNumeroRelatorio() {
   return true;
 }
 
-// ===== GERAR PDF =====
-async function gerarPDF() {
-
-    if (!validarNumeroRelatorio()) return;
-
-    const original = document.getElementById("pdf-content");
-
-    if (!original) {
-        alert("Conteúdo do relatório não encontrado.");
-        return;
-    }
-
-    // =====================================================
-    // CLONA O RELATÓRIO
-    // =====================================================
-
-    const clone = original.cloneNode(true);
-
-
-    // =====================================================
-    // CONVERTE TEXTAREAS PARA DIVS
-    // =====================================================
-
-    clone.querySelectorAll("textarea").forEach(textarea => {
-
-        const div = document.createElement("div");
-
-        div.style.whiteSpace = "pre-wrap";
-        div.style.border = "1px solid #ccc";
-        div.style.padding = "5px";
-        div.style.minHeight = "45px";
-        div.style.boxSizing = "border-box";
-        div.style.fontSize = "13px";
-        div.style.backgroundColor = "white";
-        div.style.color = "darkblue";
-        div.style.fontFamily = "Arial, sans-serif";
-
-        div.textContent = textarea.value;
-
-        textarea.parentNode.replaceChild(div, textarea);
-    });
-
-
-    // =====================================================
-    // PREPARA ASSINATURA
-    // =====================================================
-
-    prepararAssinatura(clone);
-
-
-    // =====================================================
-    // LOCALIZA OS ELEMENTOS
-    // =====================================================
-
-    const veiculos = clone.querySelector('input[name="veiculos"]');
-    const equipe = clone.querySelector(".equipe");
-    const neumann = clone.querySelector(".neumann");
-    const fotos = clone.querySelector("#fotos-container");
-
-
-    if (!veiculos || !equipe || !neumann || !fotos) {
-
-        alert(
-            "Não foi possível localizar uma das partes do relatório:\n\n" +
-            "Veículos: " + (!!veiculos) + "\n" +
-            "Equipe: " + (!!equipe) + "\n" +
-            "Neumann: " + (!!neumann) + "\n" +
-            "Fotos: " + (!!fotos)
-        );
-
-        return;
-    }
-
-
-    // =====================================================
-    // CONTAINER PRINCIPAL
-    // =====================================================
-
-    const container = document.createElement("div");
-
-    container.style.position = "fixed";
-    container.style.left = "0";
-    container.style.top = "0";
-    container.style.width = "210mm";
-    container.style.background = "#ffffff";
-    container.style.zIndex = "-9999";
-
-
-    // =====================================================
-    // ESTILO
-    // =====================================================
-
-    const estilo = document.createElement("style");
-
-    estilo.textContent = `
-
-        .pagina-pdf {
-
-            width: 190mm;
-            min-height: 277mm;
-
-            margin: 0 auto;
-
-            padding: 15px 10px;
-
-            box-sizing: border-box;
-
-            background-color: #D6FFFF;
-
-            font-family: Arial, sans-serif;
-
-            font-size: 16px;
-
-            font-weight: bold;
-
-            color: #132c0d;
-
-            overflow: visible;
-
-            page-break-after: always;
-
-            break-after: page;
-        }
-
-        .pagina-pdf:last-child {
-
-            page-break-after: auto;
-
-            break-after: auto;
-        }
-
-        .pagina-pdf input,
-        .pagina-pdf textarea,
-        .pagina-pdf select {
-
-            max-width: 100%;
-
-            box-sizing: border-box;
-        }
-
-        .pagina-pdf img {
-
-            max-width: 100%;
-
-            height: auto;
-        }
-
-        .foto-box {
-
-            page-break-inside: avoid;
-
-            break-inside: avoid;
-
-            text-align: center;
-
-            margin-bottom: 10px;
-        }
-
-    `;
-
-    document.head.appendChild(estilo);
-
-
-    // =====================================================
-    // PÁGINA 1
-    //
-    // Do início até o campo veículos
-    // =====================================================
-
-    const pagina1 = document.createElement("div");
-
-    pagina1.className = "pagina-pdf";
-
-
-    const elementos = [...clone.children];
-
-    for (const elemento of elementos) {
-
-        const copia = elemento.cloneNode(true);
-
-        pagina1.appendChild(copia);
-
-
-        // Encontrou o bloco que contém Veículos
-        if (
-            elemento === veiculos ||
-            elemento.contains(veiculos)
-        ) {
-            break;
-        }
-    }
-
-
-    // =====================================================
-    // PÁGINA 2
-    //
-    // Equipe até Neumann
-    // =====================================================
-
-    const pagina2 = document.createElement("div");
-
-    pagina2.className = "pagina-pdf";
-
-
-    // Adiciona equipe
-    pagina2.appendChild(equipe.cloneNode(true));
-
-
-    // Adiciona os elementos seguintes até Neumann
-    let encontrouEquipe = false;
-
-    for (const elemento of elementos) {
-
-        if (elemento === equipe) {
-            encontrouEquipe = true;
-            continue;
-        }
-
-        if (!encontrouEquipe) {
-            continue;
-        }
-
-        pagina2.appendChild(elemento.cloneNode(true));
-
-        if (
-            elemento === neumann ||
-            elemento.contains(neumann)
-        ) {
-            break;
-        }
-    }
-
-
-    // =====================================================
-    // PÁGINA 3
-    //
-    // Somente fotos
-    // =====================================================
-
-    const pagina3 = document.createElement("div");
-
-    pagina3.className = "pagina-pdf";
-
-
-    // Título
-    const tituloFotos = document.createElement("h3");
-
-    tituloFotos.textContent = "Fotos do Local";
-
-    tituloFotos.style.textAlign = "center";
-
-    pagina3.appendChild(tituloFotos);
-
-
-    // Adiciona fotos
-    pagina3.appendChild(fotos.cloneNode(true));
-
-
-    // =====================================================
-    // MONTA O PDF
-    // =====================================================
-
-    container.appendChild(pagina1);
-
-    container.appendChild(pagina2);
-
-    container.appendChild(pagina3);
-
-    document.body.appendChild(container);
-
-
-    // =====================================================
-    // ESPERA AS IMAGENS
-    // =====================================================
-
-    const imagens = [...container.querySelectorAll("img")];
-
-    await Promise.all(
-
-        imagens.map(img => {
-
-            if (img.complete) {
-                return Promise.resolve();
-            }
-
-            return new Promise(resolve => {
-
-                img.onload = resolve;
-
-                img.onerror = resolve;
-
-            });
-        })
-    );
-
-
-    // Pequena espera para o layout
-    await new Promise(resolve => setTimeout(resolve, 300));
-
-
-    // =====================================================
-    // CONFIGURAÇÃO DO PDF
-    // =====================================================
-
-    const opt = {
-
-        margin: 0,
-
-        filename: getNumeroRelatorio(),
-
-        image: {
-            type: "jpeg",
-            quality: 0.98
-        },
-
-        html2canvas: {
-
-            scale: 2,
-
-            useCORS: true,
-
-            scrollX: 0,
-
-            scrollY: 0
-        },
-
-        pagebreak: {
-
-            mode: ["css"]
-        },
-
-        jsPDF: {
-
-            unit: "mm",
-
-            format: "a4",
-
-            orientation: "portrait"
-        }
-    };
-
-
-    // =====================================================
-    // GERA
-    // =====================================================
-
-    try {
-
-        await html2pdf()
-            .set(opt)
-            .from(container)
-            .save();
-
-        limparRelatorioEmAndamento();
-
-    } catch (erro) {
-
-        console.error("Erro ao gerar PDF:", erro);
-
-        alert(
-            "Erro ao gerar o PDF.\n\n" +
-            erro.message
-        );
-
-    } finally {
-
-        if (container.parentNode) {
-
-            container.parentNode.removeChild(container);
-        }
-
-        if (estilo.parentNode) {
-
-            estilo.parentNode.removeChild(estilo);
-        }
-    }
+function gerarPDF() {
+  if (!validarNumeroRelatorio()) return;
+
+  const original = document.getElementById('pdf-content');
+  const clone = original.cloneNode(true);
+  const textareas = clone.querySelectorAll('textarea');
+  textareas.forEach(textarea => {
+    const div = document.createElement('div');
+    div.style.whiteSpace = 'pre-wrap';
+    div.style.border = '1px solid #ccc';
+    div.style.padding = '5px';
+    
+    div.style.fontWeight = 'bold';
+    div.style.fontSize = '14px';
+    div.style.backgroundColor = 'white';
+    div.style.color = 'blue';
+    div.textContent = textarea.value;
+    textarea.parentNode.replaceChild(div, textarea);
+  });
+  prepararAssinatura(clone);
+  const container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.appendChild(clone);
+  document.body.appendChild(container);
+  
+  const opt = {
+    margin: [5, 5, 5, 5],
+    filename: getNumeroRelatorio(),
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { 
+      scale: 3,
+      useCORS: true,
+      scrollY: 0,
+      windowWidth: document.documentElement.scrollWidth,
+      windowHeight: document.documentElement.scrollHeight
+    },
+pagebreak: { mode: ['avoid-all', 'css', 'legacy'] },    
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+
+  html2pdf().set(opt).from(clone).save().then(() => {
+  document.body.removeChild(container);
+
+  // 🧹 Finalizou → libera o número
+  limparRelatorioEmAndamento();
+});
 }
 
 function validarNumeroRelatorio() {
@@ -492,7 +163,7 @@ async function compartilharPDF() {
     div.style.whiteSpace = 'pre-wrap';
     div.style.border = '1px solid #ccc';
     div.style.padding = '5px';
-    div.style.minHeight = '45px';
+    
     div.style.fontWeight = 'bold';
     div.style.fontSize = '14px';
     div.style.backgroundColor = 'white';
@@ -763,4 +434,5 @@ async function compartilharFotos() {
     alert('Este navegador não suporta compartilhamento de arquivos.');
   }
 }
+
 
